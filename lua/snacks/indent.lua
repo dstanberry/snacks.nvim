@@ -313,7 +313,7 @@ function M.render_scope(scope, state)
 
   if config.scope.underline and scope.from == from then
     vim.api.nvim_buf_set_extmark(scope.buf, ns, scope.from - 1, math.max(col, 0), {
-      end_col = #vim.api.nvim_buf_get_lines(scope.buf, scope.from - 1, scope.from, false)[1],
+      end_col = #(vim.api.nvim_buf_get_lines(scope.buf, scope.from - 1, scope.from, false)[1] or ""),
       hl_group = get_underline_hl(hl),
       hl_mode = "combine",
       priority = config.scope.priority + 1,
@@ -393,7 +393,8 @@ end
 ---@param prev? number
 local function step(scope, value, prev)
   prev = prev or 0
-  local cursor = vim.api.nvim_win_get_cursor(scope.win)
+  local ok, cursor = pcall(vim.api.nvim_win_get_cursor, scope.win)
+  if not ok then return end
   local dt = math.abs(scope.from - cursor[1])
   local db = math.abs(scope.to - cursor[1])
   local style = config.animate.style == "up_down" and (dt < db and "down" or "up") or config.animate.style
